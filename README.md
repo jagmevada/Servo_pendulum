@@ -34,28 +34,35 @@ Servo myservo;
 const int servoPin = 9;
 
 // === Pendulum Settings ===
-float thetaMax = 45.0;      // Max swing angle (degrees)
-float period = 3.0;         // Total swing period (seconds)
+float thetaMax = 22.5;         // Half of total swing angle (45° total)
+float meanAngle = 80.0;        // Center position (mid-swing)
+float period = 3.0;            // Total period of full swing (seconds)
 unsigned long startTime;
 
+// === Servo Pulse Parameters ===
+const int minPulse = 550;      // microseconds at 0°
+const int maxPulse = 2200;     // microseconds at 160°
+const float angleMin = 0.0;
+const float angleMax = 160.0;
+
 void setup() {
-  myservo.attach(servoPin);
+  myservo.attach(servoPin);    // Attach servo to pin
   startTime = millis();
 }
 
 void loop() {
-  float t = (millis() - startTime) / 1000.0; // time in seconds
+  float t = (millis() - startTime) / 1000.0;  // Time in seconds
 
-  // Calculate pendulum angle as a sine function
-  float angle = thetaMax * sin((2 * PI / period) * t);
+  // Calculate sinusoidal angle: swings around meanAngle ± thetaMax
+  float angle = meanAngle + thetaMax * sin((2 * PI / period) * t);
 
-  // Map angle to servo range (centered at 90°)
-  float servoAngle = 90 + angle;
-  myservo.write(servoAngle);
+  // Map angle (0–160) to servo pulse width (550–2200 µs)
+  int pulse = map(angle, angleMin, angleMax, minPulse, maxPulse);
+  myservo.writeMicroseconds(pulse);
 
-  delay(20); // Update at ~50 Hz
+  delay(20);  // ~50 Hz update rate
 }
-```
+
 
 ## 🔄 Customization
 
@@ -70,14 +77,7 @@ void loop() {
 - Servo resolution and jitter may limit precision for small swing amplitudes.
 - For best effect, center the physical setup to match 90° neutral servo angle.
 
-## 📁 File Structure
 
-```
-/SinusoidalPendulum/
-│
-├── SinusoidalPendulum.ino   // Main Arduino sketch
-└── README.md                // Project documentation
-```
 
 ## 📷 Demo
 
